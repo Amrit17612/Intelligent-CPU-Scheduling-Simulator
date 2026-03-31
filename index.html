@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intelligent CPU Scheduling Simulator</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Minimal loading flash-prevention */
+        body { background-color: #0f172a; color: white; margin: 0; font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i data-lucide="cpu" class="icon-brand"></i>
+                    <span>CPU-Sim v2</span>
+                </div>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="#dashboard" class="nav-item active" data-view="dashboard">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#simulator" class="nav-item" data-view="simulator">
+                    <i data-lucide="play-circle"></i>
+                    <span>Simulator</span>
+                </a>
+                <a href="#comparison" class="nav-item" data-view="comparison">
+                    <i data-lucide="bar-chart-3"></i>
+                    <span>Comparison</span>
+                </a>
+                <a href="#help" class="nav-item" data-view="help">
+                    <i data-lucide="help-circle"></i>
+                    <span>Guide</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="theme-toggle">
+                    <i data-lucide="sun" id="sun-icon"></i>
+                    <i data-lucide="moon" id="moon-icon" style="display:none;"></i>
+                    <span>Light Mode</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="top-bar-title">
+                    <h2>Intelligent CPU Scheduling Simulator</h2>
+                </div>
+                <div class="user-profile">
+                    <img src="https://ui-avatars.com/api/?name=User&background=6366f1&color=fff" alt="User">
+                </div>
+            </header>
+
+            <!-- Dashboard View -->
+            <section id="view-dashboard" class="content-view active">
+                <div class="welcome-section">
+                    <h1>Welcome, User!</h1>
+                    <p>Ready to analyze CPU performance? Here's your mission control.</p>
+                </div>
+
+                <div class="stat-cards">
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <i data-lucide="activity"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Algorithms</h3>
+                            <p>5 Models Ready</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i data-lucide="layers"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Max Processes</h3>
+                            <p>Unlimited</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card info-card">
+                    <div class="card-header">
+                        <h2><i data-lucide="info"></i> Project Overview</h2>
+                    </div>
+                    <div class="info-content">
+                        <p>This simulator provides a comprehensive look into how operating systems manage process execution. You can test various policies like FCFS, SJF, and Round Robin to observe how they affect system latency and throughput.</p>
+                        <ul class="feature-list">
+                            <li><i data-lucide="check" class="text-success"></i> Interactive Gantt Chart Visualization</li>
+                            <li><i data-lucide="check" class="text-success"></i> Preemptive & Non-preemptive support</li>
+                            <li><i data-lucide="check" class="text-success"></i> Detailed Efficiency Statistics</li>
+                            <li><i data-lucide="check" class="text-success"></i> Side-by-side performance comparison</li>
+                        </ul>
+                        <button class="btn btn-primary" onclick="window.dispatchEvent(new CustomEvent('switch-view', {detail: 'simulator'}))">
+                            Start Simulation <i data-lucide="arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Simulator View -->
+            <section id="view-simulator" class="content-view">
+                <div class="welcome-section">
+                    <h1>CPU Simulator</h1>
+                    <p>Add processes and run the scheduling engine.</p>
+                </div>
+
+                <div class="simulator-main">
+                    <div class="card process-input-card">
+                        <div class="card-header">
+                            <h2><i data-lucide="plus-circle"></i> Add Process</h2>
+                        </div>
+                        <form id="process-form" class="form-grid">
+                            <div class="input-group">
+                                <label>Process ID</label>
+                                <input type="text" id="pid" placeholder="P1, P2..." required>
+                            </div>
+                            <div class="input-group">
+                                <label>Arrival Time</label>
+                                <input type="number" id="arrival" min="0" value="0" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Burst Time</label>
+                                <input type="number" id="burst" min="1" value="1" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Priority (Optional)</label>
+                                <input type="number" id="priority" min="1" value="1">
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary" id="add-process-btn">
+                                    <i data-lucide="plus"></i> Add
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="random-data-btn">
+                                    <i data-lucide="shuffle"></i> Mock
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="card table-card">
+                        <div class="card-header">
+                            <h2><i data-lucide="list"></i> Queue</h2>
+                            <button class="btn btn-danger btn-sm" id="clear-all-btn">Reset</button>
+                        </div>
+                        <div class="table-container">
+                            <table id="process-table">
+                                <thead>
+                                    <tr>
+                                        <th>PID</th>
+                                        <th>Arrival</th>
+                                        <th>Burst</th>
+                                        <th>Priority</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="process-list"></tbody>
+                            </table>
+                            <div id="empty-state" class="empty-state">
+                                <i data-lucide="database"></i>
+                                <p>No processes yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="algorithm-selection">
+                    <div class="card settings-card">
+                        <div class="card-header">
+                            <h2><i data-lucide="settings"></i> Engine Settings</h2>
+                        </div>
+                        <div class="settings-grid">
+                            <div class="input-group">
+                                <label>Algorithm</label>
+                                <select id="algorithm-select">
+                                    <option value="fcfs">FCFS (First Come First Serve)</option>
+                                    <option value="sjf-np">SJF (Shortest Job First)</option>
+                                    <option value="sjf-p">SRTF (Preemptive SJF)</option>
+                                    <option value="priority-np">Priority Scheduling</option>
+                                    <option value="rr">Round Robin</option>
+                                </select>
+                            </div>
+                            <div class="input-group" id="quantum-group" style="display:none;">
+                                <label>Time Quantum</label>
+                                <input type="number" id="quantum" min="1" value="2">
+                            </div>
+                            <div class="form-actions-full">
+                                <button class="btn btn-success btn-lg" id="run-simulation-btn">
+                                    <i data-lucide="play-circle"></i> Run Simulation
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="results-section" style="display:none; margin-top:2rem;">
+                    <div class="card visualization-card">
+                        <div class="card-header">
+                            <h2><i data-lucide="milestone"></i> Gantt Chart</h2>
+                        </div>
+                        <div id="gantt-chart" class="gantt-container"></div>
+                        <div class="gantt-legend" id="gantt-legend"></div>
+                    </div>
+
+                    <div class="metrics-grid">
+                        <div class="card result-table-card">
+                            <div class="card-header">
+                                <h2><i data-lucide="check-circle-2"></i> Results</h2>
+                            </div>
+                            <div class="table-container">
+                                <table id="results-table">
+                                    <thead>
+                                        <tr>
+                                            <th>PID</th>
+                                            <th>WT</th>
+                                            <th>TAT</th>
+                                            <th>RT</th>
+                                            <th>Finish</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="results-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="card summary-card">
+                            <div class="card-header">
+                                <h2><i data-lucide="zap"></i> Performance</h2>
+                            </div>
+                            <div class="metric-highlights">
+                                <div class="metric-item">
+                                    <span>Avg WT</span>
+                                    <strong id="avg-wt-val">0.00</strong>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Avg TAT</span>
+                                    <strong id="avg-tat-val">0.00</strong>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Util %</span>
+                                    <strong id="util-val">0%</strong>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Throughput</span>
+                                    <strong id="throughput-val">0</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Comparison View -->
+            <section id="view-comparison" class="content-view">
+                <div class="welcome-section">
+                    <h1>Performance Audit</h1>
+                    <p>Compare all scheduling algorithms on the current process set.</p>
+                </div>
+                <div class="comparison-actions" style="margin-bottom: 2rem;">
+                    <button class="btn btn-primary" id="compare-all-btn">Analyze All Algorithms</button>
+                </div>
+                <div class="charts-container">
+                    <div class="card chart-card">
+                        <div class="card-header"><h2>Average Waiting Time</h2></div>
+                        <canvas id="wt-chart"></canvas>
+                    </div>
+                    <div class="card chart-card">
+                        <div class="card-header"><h2>Average Turnaround Time</h2></div>
+                        <canvas id="tat-chart"></canvas>
+                    </div>
+                    <div class="card chart-card">
+                        <div class="card-header"><h2>CPU Utilization (%)</h2></div>
+                        <canvas id="util-chart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Guide View -->
+            <section id="view-help" class="content-view">
+                <div class="welcome-section">
+                    <h1>Learning Guide</h1>
+                    <p>Master the concepts of CPU scheduling.</p>
+                </div>
+                
+                <div class="guide-grid">
+                    <div class="card">
+                        <h3>1. FCFS (First Come First Serve)</h3>
+                        <p>The simplest algorithm. Processes are executed in the order they arrive. It's non-preemptive and can suffer from the "Convoy Effect" where a long process delays shorter ones.</p>
+                    </div>
+                    <div class="card">
+                        <h3>2. SJF (Shortest Job First)</h3>
+                        <p>Selects the process with the smallest burst time. It's optimal for minimizing average waiting time. Non-preemptive.</p>
+                    </div>
+                    <div class="card">
+                        <h3>3. SRTF (Shortest Remaining Time First)</h3>
+                        <p>The preemptive version of SJF. If a new process arrives with a shorter burst time than the current one's remaining time, the current process is preempted.</p>
+                    </div>
+                    <div class="card">
+                        <h3>4. Priority Scheduling</h3>
+                        <p>Processes are assigned a priority. The one with the highest priority (lowest number) is executed. Can cause "Starvation" for low-priority tasks.</p>
+                    </div>
+                    <div class="card">
+                        <h3>5. Round Robin (RR)</h3>
+                        <p>Designed for time-sharing systems. Each process gets a small unit of CPU time (quantum). If it doesn't finish, it's moved to the back of the queue.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="src/algorithms.js" type="module"></script>
+    <script src="src/ui.js" type="module"></script>
+    <script src="src/charts.js" type="module"></script>
+    <script src="src/main.js" type="module"></script>
+</body>
+</html>
